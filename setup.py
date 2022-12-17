@@ -23,7 +23,8 @@ setuptools.setup(
         'scikit-learn'
     ],
     extras_require={
-        "abb": ["abb_motion_program_exec"]
+        "abb": ["abb_motion_program_exec"],
+        "robotraconteur": ["robotraconteur","robotraconteurcompanion"]
     },
     long_description=long_description,
     long_description_content_type='text/markdown'

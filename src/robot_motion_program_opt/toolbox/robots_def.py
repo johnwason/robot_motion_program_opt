@@ -24,7 +24,7 @@ class robot_obj(object):
 		self.robot_name=robot_name
 		self.robot=copy.deepcopy(robot)
 		if self.robot.p_tool is not None:
-			self.robot.p_tool += np.matmul(self.robot.R_tool, np.array([0.,0.,d]))
+			self.robot.p_tool += np.matmul(self.robot.R_tool, np.array([0.,0.,d],dtype=np.float64))
 		robot_def_nT = copy.deepcopy(self.robot)
 		robot_def_nT.R_tool = None
 		robot_def_nT.p_tool = None

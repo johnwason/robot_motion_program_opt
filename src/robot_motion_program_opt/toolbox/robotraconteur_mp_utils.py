@@ -12,9 +12,12 @@ import RobotRaconteur as RR
 from RobotRaconteurCompanion.Util.GeometryUtil import GeometryUtil
 
 class MotionSendRobotRaconteurMP(object):
-    def __init__(self, robot_mp):
+    def __init__(self, robot_mp=None, node=None):
         self._robot_mp = robot_mp
-        self._node = robot_mp.RRGetNode()
+        if robot_mp is not None and node is None:
+            self._node = robot_mp.RRGetNode()
+        else:
+            self._node = node
 
         self._robot_const = self._node.GetConstants("com.robotraconteur.robotics.robot", self._robot_mp)
         self._abb_robot_const = self._node.GetConstants("experimental.abb_robot", self._robot_mp)
@@ -131,11 +134,8 @@ class MotionSendRobotRaconteurMP(object):
         settool.tool_info = toolinfo
         return RR.VarValue(settool,"experimental.robotics.motion_program.SetToolCommand")
 
-    def exec_motions(self,robot,primitives,breakpoints,p_bp,q_bp,speed,zone):
+    def convert_motion_program(self,robot,primitives,breakpoints,p_bp,q_bp,speed,zone):
         
-        self._robot_mp.disable_motion_program_mode()
-        self._robot_mp.enable_motion_program_mode()
-
         #mp = MotionProgram(tool=tooldata(True,pose(robot.p_tool,R2q(robot.R_tool)),loaddata(1,[0,0,0.001],[1,0,0,0],0,0,0)))
 
         setup_cmds=[self.settool(robot)]
@@ -214,6 +214,15 @@ class MotionSendRobotRaconteurMP(object):
 
         mp.motion_setup_commands = setup_cmds
         mp.motion_program_commands = mp_cmds
+
+        return mp
+
+    def exec_motions(self,robot,primitives,breakpoints,p_bp,q_bp,speed,zone):
+        
+        self._robot_mp.disable_motion_program_mode()
+        self._robot_mp.enable_motion_program_mode()
+
+        mp=self.convert_motion_program(robot,primitives,breakpoints,p_bp,q_bp,speed,zone)
 
         mp_gen = self._robot_mp.execute_motion_program_record(mp, False)
         res = None

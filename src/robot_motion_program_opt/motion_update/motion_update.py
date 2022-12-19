@@ -91,36 +91,40 @@ def error_descent_abb(robot,robot_motion_send,iter_cb,breakpoints,primitives,p_b
         if len(peaks)==0 or np.argmax(error) not in peaks:
             peaks=np.append(peaks,np.argmax(error))
         
-        ##############################plot error#####################################
-        # fig, ax1 = plt.subplots()
-        plt.close('all')
-        fig, ax1 = plt.subplots(figsize=(6,4))
-        ax2 = ax1.twinx()
-        ax1.plot(lam, speed, 'g-', label='Speed')
-        ax2.plot(lam, error, 'b-',label='Error')
-        ax2.scatter(lam[peaks],error[peaks],label='peaks')
-        ax2.plot(lam, np.degrees(angle_error), 'y-',label='Normal Error')
-        if draw_speed_max is None:
-            draw_speed_max=max(speed)*1.05
-        ax1.axis(ymin=0,ymax=draw_speed_max)
-        if draw_error_max is None:
-            draw_error_max=max(max(error),max(np.degrees(angle_error)))*1.05
-        if max(error) >= draw_error_max or max(np.degrees(angle_error)) >= draw_error_max or max(error) < draw_error_max*0.1:
-            draw_error_max=max(max(error),max(np.degrees(angle_error)))*1.05
-        ax2.axis(ymin=0,ymax=draw_error_max)
+        if iter_cb is not None:
+            ##############################plot error#####################################
+            # fig, ax1 = plt.subplots()
+            # plt.close('all')
+            fig, ax1 = plt.subplots(figsize=(6,4))
+            ax2 = ax1.twinx()
+            ax1.plot(lam, speed, 'g-', label='Speed')
+            ax2.plot(lam, error, 'b-',label='Error')
+            ax2.scatter(lam[peaks],error[peaks],label='peaks')
+            ax2.plot(lam, np.degrees(angle_error), 'y-',label='Normal Error')
+            if draw_speed_max is None:
+                draw_speed_max=max(speed)*1.05
+            ax1.axis(ymin=0,ymax=draw_speed_max)
+            if draw_error_max is None:
+                draw_error_max=max(max(error),max(np.degrees(angle_error)))*1.05
+            if max(error) >= draw_error_max or max(np.degrees(angle_error)) >= draw_error_max or max(error) < draw_error_max*0.1:
+                draw_error_max=max(max(error),max(np.degrees(angle_error)))*1.05
+            ax2.axis(ymin=0,ymax=draw_error_max)
 
-        ax1.set_xlabel('lambda (mm)')
-        ax1.set_ylabel('Speed/lamdot (mm/s)', color='g')
-        ax2.set_ylabel('Error/Normal Error (mm/deg)', color='b')
-        plt.title("Iteration "+str(i)+": Speed and Error Plot")
+            ax1.set_xlabel('lambda (mm)')
+            ax1.set_ylabel('Speed/lamdot (mm/s)', color='g')
+            ax2.set_ylabel('Error/Normal Error (mm/deg)', color='b')
+            plt.title("Iteration "+str(i)+": Speed and Error Plot")
 
-        h1, l1 = ax1.get_legend_handles_labels()
-        h2, l2 = ax2.get_legend_handles_labels()
-        ax1.legend(h1+h2, l1+l2, loc=1)
-      
+            h1, l1 = ax1.get_legend_handles_labels()
+            h2, l2 = ax2.get_legend_handles_labels()
+            ax1.legend(h1+h2, l1+l2, loc=1)
+
+            iter_cb(max(error), max(angle_error), std_speed/ave_speed, [fig])
+
         
-        plt.show(block=False)
-        plt.pause(0.1)
+        
+        # plt.show(block=False)
+        # plt.pause(0.1)
 
         if max(error)<error_tol and max(np.rad2deg(angle_error))<angerror_tol and (std_speed/ave_speed*100)<velstd_tol:
             print("Tolerance Satisfied")

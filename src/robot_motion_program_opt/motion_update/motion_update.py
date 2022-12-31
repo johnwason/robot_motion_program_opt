@@ -119,7 +119,7 @@ def error_descent_abb(robot,robot_motion_send,iter_cb,breakpoints,primitives,p_b
             h2, l2 = ax2.get_legend_handles_labels()
             ax1.legend(h1+h2, l1+l2, loc=1)
 
-            iter_cb(max(error), max(angle_error), std_speed/ave_speed, [fig])
+            iter_cb(max(error), max(angle_error), ave_speed, [fig])
 
         
         

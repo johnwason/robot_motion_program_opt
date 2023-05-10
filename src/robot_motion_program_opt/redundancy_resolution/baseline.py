@@ -48,46 +48,51 @@ def curve_frame_conversion(curve,curve_normal,H):
 def find_js(robot,curve,curve_normal):
 	###find all possible inv solution for given curve
 
-	###get R first 
-	curve_R=[]
-	for i in range(len(curve)-1):
-		R_curve=direction2R(curve_normal[i],-curve[i+1]+curve[i])	
-		curve_R.append(R_curve)
-
-	###insert initial orientation
-	curve_R.insert(0,curve_R[0])
-
-	###get all possible initial config
-	try:
-		q_inits=np.array(robot.inv(curve[0],curve_R[0]))
-	except:
-		traceback.print_exc()
-		print('no solution available')
-		return
-
-	# print(np.degrees(q_inits))
 	curve_js_all=[]
-	for q_init in q_inits:
-		curve_js=np.zeros((len(curve),6))
-		curve_js[0]=q_init
-		for i in range(1,len(curve)):
-			q_all=np.array(robot.inv(curve[i],curve_R[i]))
-			if len(q_all)==0:
-				#if no solution
-				print(i)
-				print(np.degrees(curve_js[i-1]))
-				print('no solution available')
-				return
+	for cases in range(4):
+		###get R first 
+		curve_R=[]
+		for i in range(len(curve)-1):
+			if cases==0:
+				R_curve=direction2R_X(curve_normal[i],-curve[i+1]+curve[i])	
+			elif cases==1:
+				R_curve=direction2R_X(curve_normal[i],curve[i+1]-curve[i])	
+			elif cases==2:
+				R_curve=direction2R_Y(curve_normal[i],-curve[i+1]+curve[i])
+			elif cases==4:
+				R_curve=direction2R_Y(curve_normal[i],curve[i+1]-curve[i])
+			curve_R.append(R_curve)
 
-			temp_q=q_all-curve_js[i-1]
-			order=np.argsort(np.linalg.norm(temp_q,axis=1))
-			if np.linalg.norm(q_all[order[0]]-curve_js[i-1])>0.5:
-				break	#if large changes in q
-			else:
-				curve_js[i]=q_all[order[0]]
+		###insert initial orientation
+		curve_R.insert(0,curve_R[0])
 
-		#check if all q found
-		if np.linalg.norm(curve_js[-1])>0:
-			curve_js_all.append(curve_js)
+		###get all possible initial config
+		try:
+			q_inits=np.array(robot.inv(curve[0],curve_R[0]))
+		except:
+			traceback.print_exc()
+			return
+
+		# print(np.degrees(q_inits))
+		
+		for q_init in q_inits:
+			curve_js=np.zeros((len(curve),6))
+			curve_js[0]=q_init
+			for i in range(1,len(curve)):
+				q_all=np.array(robot.inv(curve[i],curve_R[i]))
+				if len(q_all)==0:
+					#if no solution
+					break
+
+				temp_q=q_all-curve_js[i-1]
+				order=np.argsort(np.linalg.norm(temp_q,axis=1))
+				if np.linalg.norm(q_all[order[0]]-curve_js[i-1])>0.5:
+					break	#if large changes in q
+				else:
+					curve_js[i]=q_all[order[0]]
+
+			#check if all q found
+			if np.linalg.norm(curve_js[-1])>0:
+				curve_js_all.append(curve_js)
 
 	return curve_js_all

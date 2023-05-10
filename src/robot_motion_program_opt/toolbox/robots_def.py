@@ -18,27 +18,33 @@ def unwrapped_angle_check(q_init,q_all):
 
 class robot_obj(object):
 	###robot object class
-	def __init__(self,robot_name,robot,base_transformation=None,d=0,acc_dict=None):
-		
+	def __init__(self,robot_name,def_path,tool_file_path='',base_transformation_file='',d=0,acc_dict_path='',j_compensation=[1,1,1,1,1,1]):
+		#def_path: robot 			definition yaml file, name must include robot vendor
+		#tool_file_path: 			tool transformation to robot flange csv file
+		#base_transformation_file: 	base transformation to world frame csv file
+		#d: 						tool z extension
+		#acc_dict_path: 			accleration profile
 
 		self.robot_name=robot_name
-		self.robot=copy.deepcopy(robot)
-		if self.robot.p_tool is not None:
-			self.robot.p_tool += np.matmul(self.robot.R_tool, np.array([0.,0.,d],dtype=np.float64))
-		robot_def_nT = copy.deepcopy(self.robot)
-		robot_def_nT.R_tool = None
-		robot_def_nT.p_tool = None
-		self.robot_def_nT = robot_def_nT
+		with open(def_path, 'r') as f:
+			self.robot = rr_rox.load_robot_info_yaml_to_robot(f)
 
-		self.R_tool=self.robot.R_tool
-		self.p_tool=self.robot.p_tool
+		self.def_path=def_path
+		#define robot without tool
+		self.robot_def_nT=Robot(self.robot.H,self.robot.P,self.robot.joint_type)
 
+		if len(tool_file_path)>0:
+			tool_H=np.loadtxt(tool_file_path,delimiter=',')
+			self.robot.R_tool=tool_H[:3,:3]
+			self.robot.p_tool=tool_H[:3,-1]+np.dot(tool_H[:3,:3],np.array([0,0,d]))
+			self.p_tool=self.robot.p_tool
+			self.R_tool=self.robot.R_tool
 
-		if base_transformation is None:
-			self.base_H = np.eye(4)
+		if len(base_transformation_file)>0:
+			self.base_H=np.loadtxt(base_transformation_file,delimiter=',')
 		else:
-			self.base_h = H_from_RT(base_transformation.R, base_transformation.p)
-		
+			self.base_H=np.eye(4)
+
 		###set attributes
 		self.upper_limit=self.robot.joint_upper_limit 
 		self.lower_limit=self.robot.joint_lower_limit 
@@ -46,8 +52,8 @@ class robot_obj(object):
 		self.joint_acc_limit=self.robot.joint_acc_limit 
 
 		###acceleration table
-		if acc_dict is not None:
-			
+		if len(acc_dict_path)>0:
+			acc_dict= pickle.load(open(acc_dict_path,'rb'))
 			q2_config=[]
 			q3_config=[]
 			q1_acc_n=[]
@@ -70,7 +76,7 @@ class robot_obj(object):
 		
 		###initialize tesseract robot
 		self.initialize_tesseract_robot()
-
+		
 	def initialize_tesseract_robot(self):
 		# TODO: use robot metadata to determine inverse solver
 		# if len(self.robot.joint_names)>6:	#redundant kinematic chain

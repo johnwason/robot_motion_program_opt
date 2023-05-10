@@ -5,9 +5,11 @@ import numpy as np
 
 def redundancy_resolution_baseline(curve, robot):
 
-    
     H = pose_opt(robot,curve[:,:3],curve[:,3:])
     curve_base,curve_normal_base=curve_frame_conversion(curve[:,:3],curve[:,3:],H)
+    
+    # find js with all possible initial R
+    # x-axis, y-axis, w. and w.o. reversed
     curve_js_all=find_js(robot,curve_base,curve_normal_base)
 
     if len(curve_js_all) > 0:

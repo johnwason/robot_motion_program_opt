@@ -5,9 +5,11 @@ sys.path.append('../src')
 from robot_motion_program_opt.redundancy_resolution.redundancy_resolution import *
 from robot_motion_program_opt.toolbox.robots_def import *
 
-def test_m10ia_baseline():
+def test_baseline():
     
+    # TODO: test other curves
     curve_name = 'curve_3'
+    # TODO: test other robots
     robot_name = 'FANUC_m10ia'
 
     curve_path = 'curve_data/'+curve_name+'/'
@@ -24,8 +26,5 @@ def test_m10ia_baseline():
     Path(save_filepath).mkdir(exist_ok=True)
 
     curve_base = np.hstack((curve_base,curve_normal_base))
-    np.savetxt(save_filepath+'Curve_in_base_frame.csv',curve_base,delimiter=',')
-    np.savetxt(save_filepath+'Curve_js.csv',curve_js,delimiter=',')
-    np.savetxt(save_filepath+'curve_pose.csv',H,delimiter=',')
 
-test_m10ia_baseline()
+test_baseline()
